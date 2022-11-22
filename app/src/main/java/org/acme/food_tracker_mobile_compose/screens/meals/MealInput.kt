@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,7 +31,7 @@ fun MealInput(
     }
     KcalField(viewModel, scope, scaffoldState, additionalActionAfterSubmit)
     Spacer(modifier = Modifier.height(16.dp))
-    TimeOfDaySlider(viewModel)
+    TimeOfDayInput(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
     Buttons(scope, viewModel, scaffoldState, additionalActionAfterSubmit)
 }
@@ -43,6 +44,7 @@ private fun NameField(viewModel: MainScreenViewModel) {
         value = viewModel.nameTextFieldState,
         label = { Text("Name") },
         onValueChange = { viewModel.nameTextFieldState = it },
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         keyboardActions = KeyboardActions(onDone = { localFocusManager.moveFocus(FocusDirection.Down) }),
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
@@ -66,7 +68,7 @@ private fun KcalField(
             value = viewModel.kcalTextFieldState,
             label = { Text("Kcal") },
             onValueChange = { viewModel.kcalTextFieldState = it },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             keyboardActions = KeyboardActions(onDone = { sendMeal(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }),
             singleLine = true,
             modifier = if (!kcalFieldContainsPotentialExpression) Modifier.fillMaxWidth() else Modifier
@@ -78,13 +80,36 @@ private fun KcalField(
 }
 
 @Composable
+private fun TimeOfDayInput(viewModel: MainScreenViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(24.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            TimeOfDaySlider(viewModel)
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxHeight(),
+        ) {
+            Text(text = viewModel.sliderTime().toString())
+        }
+    }
+}
+
+@Composable
 private fun TimeOfDaySlider(viewModel: MainScreenViewModel) {
     Slider(
         value = viewModel.sliderPosition,
         onValueChange = {
-            viewModel.sliderPosition = it
+            viewModel.sliderPosition = it //0..1
         },
-        steps = 2 //does not count leftmost and rightmost
     )
     Row {
         Text(

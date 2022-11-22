@@ -13,16 +13,20 @@ import org.acme.food_tracker_mobile_compose.httpclient.KtorClient
 import org.acme.food_tracker_mobile_compose.httpclient.Meal
 import org.acme.food_tracker_mobile_compose.httpclient.MealWeb
 import org.acme.food_tracker_mobile_compose.util.Resource
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
+import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
+private val MIN_TIME = 6 * 60
+private val MAX_TIME = 22 * 60
+
 open class MainScreenViewModel(
     val menuViewModel: MenuScreenViewModel,
-    sliderPosition: Float = 0F,
+    sliderPosition: Float = LocalTime.now().trimToRangeAndMapFrom0To1(MIN_TIME, MAX_TIME),
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
     exerciseSwitchState: Boolean = false,
@@ -72,7 +76,8 @@ open class MainScreenViewModel(
 
     @OptIn(ExperimentalPagerApi::class)
     suspend fun postMeal(): Boolean {
-        val meal = Meal(null, nameTextFieldState, kcalTextFieldState.toInt(), Instant.now().plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS), exerciseSwitchState)
+        val date = LocalDateTime.of(LocalDate.now(), sliderTime()).plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).toInstant()
+        val meal = Meal(null, nameTextFieldState.trim(), kcalTextFieldState.toInt(), date, exerciseSwitchState)
         val mealPostResponse: Resource<MealPostResponse?> =
             client.postAndReturnBody(MealWeb(null, meal.name, meal.kcal, meal.date, meal.exercise), menuViewModel.serverAddressFieldState + "/meal")
 
@@ -110,14 +115,6 @@ open class MainScreenViewModel(
             is Resource.Failure -> Resource.Failure(result.message)
         }
     }
-//    suspend fun fetchMeals(): Result<Unit> {
-//        val result = client.get<List<MealWeb>>(menuViewModel.serverAddressFieldState + "/meal")
-//        if (result is Resource.Success) {
-//            mealList.clear()
-//            mealList.addAll(result.result.map { it.asMeal() })
-//            return Resource.Success
-//        }
-//    }
 
     fun getMeals(day: LocalDate) = mealList.filter { LocalDateTime.ofInstant(it.date, ZoneId.systemDefault()).toLocalDate() == day }.sortedBy { it.date }
     fun getKcalsByDay() =
@@ -131,8 +128,19 @@ open class MainScreenViewModel(
 
     fun kcalTarget() = menuViewModel.kcalTarget()
 
-    private fun timeOfDayNumber(): Int = (sliderPosition * 3).roundToInt()
+    fun sliderTime(): LocalTime {
+        val timeRange = MAX_TIME - MIN_TIME
+        val mins = (sliderPosition * timeRange / 15)
+            .roundToInt()
+            .times(15)
+            .plus(MIN_TIME)
+            .coerceAtMost(60 * 24 - 15)
+        return LocalTime.of(mins / 60, mins % 60)
+    }
+}
 
+private fun LocalTime.trimToRangeAndMapFrom0To1(minutesMin: Int, minutesMax: Int): Float {
+    return this.get(ChronoField.MINUTE_OF_DAY).minus(minutesMin).toFloat().div(minutesMax - minutesMin).coerceIn(0F, 1F)
 }
 
 @Serializable

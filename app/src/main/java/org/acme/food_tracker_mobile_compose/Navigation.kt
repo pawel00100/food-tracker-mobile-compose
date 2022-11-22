@@ -20,12 +20,11 @@ import org.acme.food_tracker_mobile_compose.screens.Screen
 import org.acme.food_tracker_mobile_compose.screens.history.HistoryScreen
 import org.acme.food_tracker_mobile_compose.screens.mealdetail.MealDetailScreen
 import org.acme.food_tracker_mobile_compose.screens.mealdetail.MealEditScreen
-import org.acme.food_tracker_mobile_compose.screens.meals.MealScreen
+import org.acme.food_tracker_mobile_compose.screens.meals.MainScreen
 import org.acme.food_tracker_mobile_compose.screens.menu.MenuScreen
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
 
-//@SuppressLint("")
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
@@ -52,7 +51,7 @@ fun Navigation() {
     ) { padding ->
         NavHost(navController, startDestination = Screen.MainScreen.route) {
             composable(Screen.MainScreen.route) {
-                MealScreen(navController = navController, viewModel = mainScreenViewModel, scaffoldState = scaffoldState, padding = padding)
+                MainScreen(navController = navController, viewModel = mainScreenViewModel, scaffoldState = scaffoldState, padding = padding)
             }
             composable(Screen.MenuScreen.route) {
                 MenuScreen(navController = navController, viewModel = menuViewModel, padding = padding)

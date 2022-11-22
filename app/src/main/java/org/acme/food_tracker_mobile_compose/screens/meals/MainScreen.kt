@@ -14,11 +14,11 @@ import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 
 @Composable
-fun MealScreen(
+fun MainScreen(
     viewModel: MainScreenViewModel,
     navController: NavController,
     scaffoldState: ScaffoldState,
-    padding: PaddingValues
+    padding: PaddingValues,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -42,6 +42,5 @@ fun MealScreen(
             MealInput(viewModel, scope, scaffoldState)
         }
     }
-//    }
 
 }
