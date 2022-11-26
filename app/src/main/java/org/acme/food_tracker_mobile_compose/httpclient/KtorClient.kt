@@ -8,6 +8,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.acme.food_tracker_mobile_compose.util.Resource
 
@@ -17,7 +18,9 @@ class KtorClient() {
     val client = HttpClient(CIO) {
         install(Logging)
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true
+            })
         }
     }
 
@@ -25,6 +28,8 @@ class KtorClient() {
         return try {
             Resource.Success(client.get(endpoint).body())
         } catch (e: Exception) {
+            logger.warn("get requets on endpont $endpoint failed", e)
+            logLineByLine(e)
             Resource.Failure(e)
         }
     }
@@ -34,7 +39,8 @@ class KtorClient() {
             Resource.Success(tryPost(obj, endpoint))
 
         } catch (e: Exception) {
-            logger.warn("failed posting in endpoint $endpoint", e)
+            logger.warn("failed posting to endpoint $endpoint", e)
+            logLineByLine(e)
             Resource.Failure(e)
         }
     }
@@ -51,7 +57,8 @@ class KtorClient() {
             tryPut(obj, endpoint)
             Resource.Success(Unit)
         } catch (e: Exception) {
-            logger.warn("failed posting in endpoint $endpoint", e)
+            logger.warn("failed putting endpoint $endpoint", e)
+            logLineByLine(e)
             Resource.Failure(e)
         }
     }
@@ -67,6 +74,12 @@ class KtorClient() {
     suspend inline fun delete(endpoint: String): Boolean {
         val response = client.delete(endpoint)
         return (response.status.value / 100) == 2
+    }
+
+    fun logLineByLine(e: Exception) {
+        if (logger.isDebugEnabled) {
+            e.stackTraceToString().split("\n").forEach { logger.warn { it } }
+        }
     }
 }
 

@@ -6,6 +6,7 @@ data class Meal(
     val id: Long?,
     val name: String,
     val kcal: Int,
+    val kcalExpression: String?,
     val date: Instant,
     val exercise: Boolean,
 )

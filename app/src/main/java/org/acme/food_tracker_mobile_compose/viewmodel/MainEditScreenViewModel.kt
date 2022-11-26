@@ -20,7 +20,12 @@ class MainEditScreenViewModel(
 
     @OptIn(ExperimentalPagerApi::class)
     suspend fun putMeal(): Boolean {
-        val meal = Meal(id, nameTextFieldState, kcalTextFieldState.toInt(), Instant.now().plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS), exerciseSwitchState)
+        val meal = Meal(id,
+            nameTextFieldState,
+            kcalTextFieldState.toInt(),
+            kcalTextFieldState,
+            Instant.now().plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS),
+            exerciseSwitchState)
         val result = client.put(MealWeb(meal), menuViewModel.serverAddressFieldState + "/meal")
 
         if (result.isFailure()) {

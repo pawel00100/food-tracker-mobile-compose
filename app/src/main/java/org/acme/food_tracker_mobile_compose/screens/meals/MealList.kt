@@ -147,10 +147,10 @@ private fun datePicker(
 //@Preview
 @Composable
 private fun MealEntry(
-    meal: Meal = Meal(10, "name", 500, Instant.now(), true),
+    meal: Meal = Meal(10, "name", 500, "500", Instant.now(), true),
     scope: CoroutineScope,
     viewModel: MainScreenViewModel,
-    navController: NavController
+    navController: NavController,
 ) {
     Row(
         modifier = Modifier

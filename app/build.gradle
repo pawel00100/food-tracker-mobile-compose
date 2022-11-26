@@ -85,5 +85,11 @@ dependencies {
 
     //misc
     implementation 'io.github.microutils:kotlin-logging-jvm:3.0.4'
+    implementation 'com.github.tony19:logback-android:2.0.0' // slf4j 2.x not yet supported
+    implementation('org.slf4j:slf4j-api'){
+        version {
+            strictly '1.7.36'
+        }
+    }
     implementation 'net.objecthunter:exp4j:0.4.8'
 }

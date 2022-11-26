@@ -48,7 +48,7 @@ open class MainScreenViewModel(
     fun validated() = kcalValidated() && nameTextFieldState.isNotEmpty()
 
     private fun kcalValidated(): Boolean {
-        if (kcalTextFieldState.toIntOrNull() != null && kcalTextFieldState.toInt() >= 0) {
+        if (readKcalTextFieldState().toIntOrNull() != null && readKcalTextFieldState().toInt() >= 0) {
             return true
         }
 
@@ -60,11 +60,11 @@ open class MainScreenViewModel(
         return false
     }
 
-    fun kcalFieldHasPlainNumber() = kcalTextFieldState.toIntOrNull() != null
+    fun kcalFieldHasPlainNumber() = readKcalTextFieldState().toIntOrNull() != null
 
     fun evaluateKcal(): Int? {
         return try {
-            ExpressionBuilder(kcalTextFieldState).build().evaluate().toInt()
+            ExpressionBuilder(readKcalTextFieldState()).build().evaluate().toInt()
         } catch (e: Exception) {
             return null
         }
@@ -72,18 +72,21 @@ open class MainScreenViewModel(
 
     fun kcalFieldContainsPotentialExpression() = kcalTextFieldState.isNotEmpty() && !kcalFieldHasPlainNumber()
 
+    private fun readKcalTextFieldState() = kcalTextFieldState.replace(",", ".").replace("×", "*")
+
     open suspend fun submitMeal() = postMeal()
 
     @OptIn(ExperimentalPagerApi::class)
     suspend fun postMeal(): Boolean {
+        val kcal = evaluateKcal() ?: return false
         val date = LocalDateTime.of(LocalDate.now(), sliderTime()).plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).toInstant()
-        val meal = Meal(null, nameTextFieldState.trim(), kcalTextFieldState.toInt(), date, exerciseSwitchState)
+        val meal = Meal(null, nameTextFieldState.trim(), kcal, readKcalTextFieldState(), date, exerciseSwitchState)
         val mealPostResponse: Resource<MealPostResponse?> =
-            client.postAndReturnBody(MealWeb(null, meal.name, meal.kcal, meal.date, meal.exercise), menuViewModel.serverAddressFieldState + "/meal")
+            client.postAndReturnBody(MealWeb(null, meal.name, meal.kcal, meal.kcalExpression, meal.date, meal.exercise), menuViewModel.serverAddressFieldState + "/meal")
 
 
         if (mealPostResponse is Resource.Success && mealPostResponse.result?.id != null) {
-            mealList.add(Meal(mealPostResponse.result.id, meal.name, meal.kcal, meal.date, meal.exercise))
+            mealList.add(Meal(mealPostResponse.result.id, meal.name, meal.kcal, meal.kcalExpression, meal.date, meal.exercise))
             return true
         }
 

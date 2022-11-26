@@ -40,7 +40,7 @@ fun MealEditScreen(
         mealId,
         outsideViewModel.sliderPosition,
         meal.name,
-        meal.kcal.toString(),
+        meal.kcalExpression ?: meal.kcal.toString(),
         meal.exercise,
     )
 
