@@ -6,7 +6,7 @@ import org.acme.food_tracker_mobile_compose.httpclient.MealWeb
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class MainEditScreenViewModel(
+class MealEditScreenViewModel(
     menuViewModel: MenuScreenViewModel,
     val id: Long,
     sliderPosition: Float = 0F,

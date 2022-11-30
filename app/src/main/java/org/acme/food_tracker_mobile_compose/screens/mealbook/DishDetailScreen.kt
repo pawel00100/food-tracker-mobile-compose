@@ -1,7 +1,10 @@
-package org.acme.food_tracker_mobile_compose.screens.mealdetail
+package org.acme.food_tracker_mobile_compose.screens.dishbook
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -11,29 +14,26 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.screens.Screen
 import org.acme.food_tracker_mobile_compose.screens.menu.BackButton
-import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import org.acme.food_tracker_mobile_compose.viewmodel.DishViewModel
 
-//TODO: update meal kcal after editk
+//TODO: update dish kcal after edit
 @Composable
-fun MealDetailScreen(
+fun DishDetailScreen(
     navController: NavController,
-    viewModel: MainScreenViewModel,
+    viewModel: DishViewModel,
     padding: PaddingValues,
-    mealId: Long?,
+    dishId: Long?,
 ) {
     val scope = rememberCoroutineScope()
 
-    if (mealId == null) {
+    if (dishId == null) {
         return
     }
-    val maybeMeal = viewModel.getMeal(mealId)
-    if (viewModel.getMeal(mealId) == null) {
+    val maybeDish = viewModel.getDish(dishId)
+    if (viewModel.getDish(dishId) == null) {
         return
     }
-    val meal = maybeMeal!!
+    val dish = maybeDish!!
 
     Surface(
         modifier = Modifier
@@ -46,17 +46,7 @@ fun MealDetailScreen(
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = LocalDateTime.ofInstant(meal.date, ZoneId.of("Z")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")),
-                    fontSize = 20.sp,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = meal.name,
+                    text = dish.name,
                     fontSize = 36.sp,
                 )
             }
@@ -64,31 +54,24 @@ fun MealDetailScreen(
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "${meal.kcal} kcal",
+                    text = "${dish.kcal} kcal",
                     fontSize = 28.sp,
                 )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-
             Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
                 Button(
-                    onClick = { navController.navigate(Screen.MealEditScreen.withArgs(mealId.toString())) },
+                    onClick = { navController.navigate(Screen.DishEditScreen.withArgs(dishId.toString())) },
                 ) {
                     Text("Edit")
                 }
 
                 Button(
-                    onClick = { navController.navigate(Screen.DishCreateScreen.withArgs(meal.name, meal.kcalExpression.toString())) },
-                ) {
-                    Text("Create template")
-                }
-
-                Button(
                     onClick = {
                         scope.launch {
-                            viewModel.deleteMeal(meal.id!!)
+                            viewModel.deleteDish(dish.id!!)
                         }
                         navController.popBackStack()
                     },
@@ -98,8 +81,6 @@ fun MealDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Switch(checked = meal.exercise, onCheckedChange = {})
         }
     }
 }

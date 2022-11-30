@@ -3,7 +3,10 @@ package org.acme.food_tracker_mobile_compose.screens.meals
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,34 +14,28 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
+import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
 
 @Composable
-fun MealInput(
-    viewModel: MainScreenViewModel,
+fun DishInput(
+    viewModel: DishCreateViewModel,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
-//    addNameField: Boolean = true,
     create: Boolean = true,
     additionalActionAfterSubmit: () -> Unit = {},
 ) {
-//    if (addNameField) {
-        NameField(viewModel)
-        Spacer(modifier = Modifier.height(16.dp))
-//    }
-    KcalField(viewModel, scope, scaffoldState, additionalActionAfterSubmit)
+    NameField(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
-    TimeOfDayInput(viewModel)
+    KcalField(viewModel, scope, scaffoldState, additionalActionAfterSubmit)
     Spacer(modifier = Modifier.height(16.dp))
     Buttons(scope, viewModel, scaffoldState, create, additionalActionAfterSubmit)
 }
 
 @Composable
-private fun NameField(viewModel: MainScreenViewModel) {
+private fun NameField(viewModel: DishCreateViewModel) {
     val localFocusManager = LocalFocusManager.current
 
     OutlinedTextField(
@@ -54,7 +51,7 @@ private fun NameField(viewModel: MainScreenViewModel) {
 
 @Composable
 private fun KcalField(
-    viewModel: MainScreenViewModel,
+    viewModel: DishCreateViewModel,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
     additionalActionAfterSubmit: () -> Unit,
@@ -70,7 +67,7 @@ private fun KcalField(
             label = { Text("Kcal") },
             onValueChange = { viewModel.kcalTextFieldState = it },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone = { sendMeal(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }),
+            keyboardActions = KeyboardActions(onDone = { sendDish(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }),
             singleLine = true,
             modifier = if (!kcalFieldContainsPotentialExpression) Modifier.fillMaxWidth() else Modifier
         )
@@ -80,107 +77,29 @@ private fun KcalField(
     }
 }
 
-@Composable
-private fun TimeOfDayInput(viewModel: MainScreenViewModel) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(24.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            TimeOfDaySlider(viewModel)
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxHeight(),
-        ) {
-            Text(text = viewModel.sliderTime().toString())
-        }
-    }
-}
-
-@Composable
-private fun TimeOfDaySlider(viewModel: MainScreenViewModel) {
-    Slider(
-        value = viewModel.sliderPosition,
-        onValueChange = {
-            viewModel.sliderPosition = it //0..1
-        },
-    )
-    Row {
-        Text(
-            text = "Breakfast",
-            style = MaterialTheme.typography.caption,
-            textAlign = TextAlign.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.8f)
-        )
-        Text(
-            text = "Lunch",
-            style = MaterialTheme.typography.caption,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.8f)
-        )
-        Text(
-            text = "Snack",
-            style = MaterialTheme.typography.caption,
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.8f)
-        )
-        Text(
-            text = "Dinner",
-            style = MaterialTheme.typography.caption,
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.8f)
-        )
-    }
-}
 
 @Composable
 private fun Buttons(
     scope: CoroutineScope,
-    viewModel: MainScreenViewModel,
+    viewModel: DishCreateViewModel,
     scaffoldState: ScaffoldState,
     create: Boolean,
     additionalActionAfterSubmit: () -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Button(
-            onClick = { sendMeal(scope, viewModel, scaffoldState, additionalActionAfterSubmit) },
+            onClick = { sendDish(scope, viewModel, scaffoldState, additionalActionAfterSubmit) },
             enabled = viewModel.validated()
         ) {
             Text(if (create) "Add" else "Save")
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Exercise")
-            Switch(
-                checked = viewModel.exerciseSwitchState,
-                onCheckedChange = { viewModel.exerciseSwitchState = !viewModel.exerciseSwitchState }
-            )
         }
     }
 }
 
 
-private fun sendMeal(
+private fun sendDish(
     scope: CoroutineScope,
-    viewModel: MainScreenViewModel,
+    viewModel: DishCreateViewModel,
     scaffoldState: ScaffoldState,
     additionalActionAfterSubmit: () -> Unit,
 ) {
@@ -189,7 +108,7 @@ private fun sendMeal(
     }
 
     scope.launch {
-        val postSuccessful = viewModel.submitMeal()
+        val postSuccessful = viewModel.submitDish()
         additionalActionAfterSubmit()
         scaffoldState.snackbarHostState.showSnackbar(if (postSuccessful) "ok" else "something went wrong")
     }

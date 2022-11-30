@@ -5,12 +5,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 
 @Composable
@@ -21,15 +19,6 @@ fun MainScreen(
     padding: PaddingValues,
 ) {
     val scope = rememberCoroutineScope()
-
-    SideEffect {
-        scope.launch {
-            val result = viewModel.fetchMeals()
-            if (result.isFailure()) {
-                scaffoldState.snackbarHostState.showSnackbar("Failed fetching meals")
-            }
-        }
-    }
 
     Surface(
         modifier = Modifier

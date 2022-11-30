@@ -17,7 +17,7 @@ import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
 fun MenuScreen(
     navController: NavController,
     viewModel: MenuScreenViewModel = MenuScreenViewModel(),
-    padding: PaddingValues
+    padding: PaddingValues,
 ) {
     Surface(
         modifier = Modifier

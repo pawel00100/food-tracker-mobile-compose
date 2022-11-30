@@ -1,4 +1,4 @@
-package org.acme.food_tracker_mobile_compose.screens.mealdetail
+package org.acme.food_tracker_mobile_compose.screens.mealbook
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -9,40 +9,32 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import org.acme.food_tracker_mobile_compose.screens.meals.MealInput
+import org.acme.food_tracker_mobile_compose.screens.meals.DishInput
 import org.acme.food_tracker_mobile_compose.screens.menu.BackButton
-import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.MealEditScreenViewModel
+import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
 
 
 @Composable
-fun MealEditScreen(
+fun DishCreateScreen(
     navController: NavController,
-    outsideViewModel: MainScreenViewModel,
+    outsideViewModel: DishCreateViewModel,
     scaffoldState: ScaffoldState,
     padding: PaddingValues,
-    mealId: Long?,
+    name: String? = null,
+    kcalExpression: String? = null,
 ) {
-
-    if (mealId == null) {
-        return
-    }
-    val maybeMeal = outsideViewModel.getMeal(mealId)
-    if (outsideViewModel.getMeal(mealId) == null) {
-        return
-    }
-    val meal = maybeMeal!!
 
 
     val scope = rememberCoroutineScope()
-    val insideViewModel = MealEditScreenViewModel(
+    val insideViewModel = DishCreateViewModel(
         outsideViewModel.menuViewModel,
-        mealId,
-        outsideViewModel.sliderPosition,
-        meal.name,
-        meal.kcalExpression ?: meal.kcal.toString(),
-        meal.exercise,
+        outsideViewModel.dishViewModel,
+        name ?: "",
+        kcalExpression ?: "",
     )
+
+    DishInput(viewModel = outsideViewModel, scope = scope, scaffoldState = scaffoldState)
+
 
     Surface(
         modifier = Modifier
@@ -53,7 +45,7 @@ fun MealEditScreen(
             BackButton(navController)
             Spacer(modifier = Modifier.height(32.dp))
 
-            MealInput(insideViewModel, scope, scaffoldState, false) { navController.popBackStack() }
+            DishInput(viewModel = insideViewModel, scope = scope, scaffoldState = scaffoldState) { navController.popBackStack() }
         }
     }
 
