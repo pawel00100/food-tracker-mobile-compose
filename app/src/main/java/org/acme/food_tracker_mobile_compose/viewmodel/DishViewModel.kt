@@ -1,6 +1,9 @@
 package org.acme.food_tracker_mobile_compose.viewmodel
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import org.acme.food_tracker_mobile_compose.httpclient.Dish
 import org.acme.food_tracker_mobile_compose.httpclient.DishWeb
@@ -14,6 +17,7 @@ open class DishViewModel(
     val client = KtorClient()
 
     var dishList = mutableStateListOf<Dish>()
+    var searchFieldState: String by mutableStateOf("")
 
     suspend fun deleteDish(id: Long): Boolean {
         if (id !in dishList.map { it.id }) {
@@ -39,6 +43,14 @@ open class DishViewModel(
             }
             is Resource.Failure -> Resource.Failure(result.message)
         }
+    }
+
+    fun getFilteredDishes(): List<Dish> {
+        return getFilteredDishes(searchFieldState)
+    }
+
+    fun getFilteredDishes(filter: String): List<Dish> {
+        return dishList.filter { it.name.lowercase().contains(filter.trim().lowercase()) }
     }
 
     fun getDish(id: Long) = dishList.find { (it.id ?: -1) == id }

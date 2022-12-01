@@ -39,8 +39,8 @@ import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
 fun Navigation() {
     val navController = rememberNavController()
     val menuViewModel = MenuScreenViewModel()
-    val mainScreenViewModel = MainScreenViewModel(menuViewModel)
     val dishViewModel = DishViewModel(menuViewModel)
+    val mainScreenViewModel = MainScreenViewModel(menuViewModel, dishViewModel)
     val dishCreateViewModel = DishCreateViewModel(menuViewModel, dishViewModel)
     val scaffoldState = rememberScaffoldState()
 

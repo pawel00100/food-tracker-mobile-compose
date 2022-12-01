@@ -2,14 +2,19 @@ package org.acme.food_tracker_mobile_compose.screens.mealbook
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.acme.food_tracker_mobile_compose.httpclient.Dish
@@ -43,10 +48,38 @@ fun DishBook(
                 .padding(horizontal = 30.dp, vertical = 30.dp)
                 .fillMaxSize()
         ) {
-            for (dish in viewModel.dishList) {
+            SearchRow(viewModel)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            for (dish in viewModel.getFilteredDishes()) {
                 DishEntry(dish, navController)
             }
         }
+    }
+}
+
+@Composable
+private fun SearchRow(viewModel: DishViewModel) {
+    Row {
+        OutlinedTextField(
+            value = viewModel.searchFieldState,
+            label = { Text("Search") },
+            leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") },
+            trailingIcon = {
+                if (viewModel.searchFieldState.isNotEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        modifier = Modifier.clickable { viewModel.searchFieldState = "" }
+                    )
+                }
+            },
+            onValueChange = { viewModel.searchFieldState = it },
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

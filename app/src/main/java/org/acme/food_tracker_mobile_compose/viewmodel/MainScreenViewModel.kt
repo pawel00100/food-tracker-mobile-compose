@@ -26,6 +26,7 @@ private val MAX_TIME = 22 * 60
 
 open class MainScreenViewModel(
     val menuViewModel: MenuScreenViewModel,
+    val dishViewModel: DishViewModel,
     sliderPosition: Float = LocalTime.now().trimToRangeAndMapFrom0To1(MIN_TIME, MAX_TIME),
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
@@ -39,6 +40,7 @@ open class MainScreenViewModel(
     var exerciseSwitchState by mutableStateOf(exerciseSwitchState)
 
     val startingPage = 500_000L
+    var dropdownMenuOpened by mutableStateOf(false)
 
     @OptIn(ExperimentalPagerApi::class)
     val datePagerState = PagerState(startingPage.toInt())

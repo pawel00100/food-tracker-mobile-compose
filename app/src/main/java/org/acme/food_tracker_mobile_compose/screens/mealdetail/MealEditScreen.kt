@@ -37,6 +37,7 @@ fun MealEditScreen(
     val scope = rememberCoroutineScope()
     val insideViewModel = MealEditScreenViewModel(
         outsideViewModel.menuViewModel,
+        outsideViewModel.dishViewModel,
         mealId,
         outsideViewModel.sliderPosition,
         meal.name,

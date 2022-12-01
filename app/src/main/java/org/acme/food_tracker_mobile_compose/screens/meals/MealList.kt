@@ -4,9 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,6 +27,7 @@ import org.acme.food_tracker_mobile_compose.R
 import org.acme.food_tracker_mobile_compose.httpclient.Meal
 import org.acme.food_tracker_mobile_compose.screens.Screen
 import org.acme.food_tracker_mobile_compose.screens.misccomponents.DailyCalorieIndicator
+import org.acme.food_tracker_mobile_compose.ui.theme.BlankedText
 import org.acme.food_tracker_mobile_compose.ui.theme.PaleGreen
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 import java.time.Instant
@@ -56,7 +57,7 @@ fun MealList(viewModel: MainScreenViewModel, scope: CoroutineScope, navControlle
 
             val meals = viewModel.getMeals(day)
             for (meal in viewModel.getMeals(day)) {
-                MealEntry(meal, scope, viewModel, navController)
+                MealEntry(meal, navController)
             }
             for (i in meals.size until 6) {
                 Spacer(modifier = Modifier.height(32.dp))
@@ -90,15 +91,6 @@ private fun DateRow(dialogState: MaterialDialogState, day: LocalDate, navControl
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth(),
         ) {
-//        IconButton(onClick = {
-//            dialogState.show()
-//        }) {
-//            Icon(painterResource(R.drawable.ic_outline_calendar_today_24), contentDescription = "Open date picker")
-//        }
-//        Text(
-//            text = day.format(DateTimeFormatter.ofPattern("dd.MM.YYYY")),
-//            fontSize = 24.sp
-//        )
             Text(
                 text = day.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                 fontSize = 24.sp,
@@ -148,8 +140,6 @@ private fun datePicker(
 @Composable
 private fun MealEntry(
     meal: Meal = Meal(10, "name", 500, "500", Instant.now(), true),
-    scope: CoroutineScope,
-    viewModel: MainScreenViewModel,
     navController: NavController,
 ) {
     Row(
@@ -160,22 +150,34 @@ private fun MealEntry(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = meal.name)
-        Text(text = "${meal.kcal} kcal")
-        Text(text = meal.date.atZone(ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")))
+        Text(
+            text = meal.date.atZone(ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+            color = MaterialTheme.colors.BlankedText,
+        )
+        Spacer(modifier = Modifier.width(24.dp))
+
+        Box(Modifier
+            .fillMaxWidth()
+            .weight(1f)
+        ) {
+            Text(
+                text = meal.name,
+                softWrap = false,
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Box(Modifier
+            .width(72.dp)
+        ) {
+            Text(text = "${meal.kcal} kcal")
+        }
 
         Box(Modifier.width(24.dp)) {
             if (meal.exercise) {
                 Icon(painterResource(R.drawable.ic_baseline_directions_bike_24), contentDescription = "Is an exercise", tint = PaleGreen)
             }
-        }
-
-        IconButton(onClick = {
-            scope.launch {
-                viewModel.deleteMeal(meal.id!!)
-            }
-        }) {
-            Icon(Icons.Outlined.Delete, contentDescription = "Remove Meal")
         }
     }
 }

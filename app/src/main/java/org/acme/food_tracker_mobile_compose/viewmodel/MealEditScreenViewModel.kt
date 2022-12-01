@@ -8,12 +8,13 @@ import java.time.temporal.ChronoUnit
 
 class MealEditScreenViewModel(
     menuViewModel: MenuScreenViewModel,
+    dishViewModelTemp: DishViewModel,
     val id: Long,
     sliderPosition: Float = 0F,
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
     exerciseSwitchState: Boolean = false,
-) : MainScreenViewModel(menuViewModel, sliderPosition, nameTextFieldState, kcalTextFieldState, exerciseSwitchState) {
+) : MainScreenViewModel(menuViewModel, dishViewModelTemp, sliderPosition, nameTextFieldState, kcalTextFieldState, exerciseSwitchState) {
 
     override suspend fun submitMeal() = putMeal()
 
