@@ -12,6 +12,7 @@ sealed class Screen(val route: String) {
     object DishDetailScreen : Screen("dish_detail_screen")
     object DishCreateScreen : Screen("dish_create_screen")
     object DishEditScreen : Screen("dish_edit_screen")
+    object DishBarcodeScanner : Screen("dish_barcode_scanner_screen")
 
     fun withArgs(vararg args: String): String {
         return buildString {

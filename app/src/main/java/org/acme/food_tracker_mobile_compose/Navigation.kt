@@ -21,30 +21,27 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.screens.Screen
-import org.acme.food_tracker_mobile_compose.screens.dishbook.DishDetailScreen
+import org.acme.food_tracker_mobile_compose.screens.dishbook.*
 import org.acme.food_tracker_mobile_compose.screens.history.HistoryScreen
-import org.acme.food_tracker_mobile_compose.screens.mealbook.DishBook
-import org.acme.food_tracker_mobile_compose.screens.mealbook.DishCreateScreen
-import org.acme.food_tracker_mobile_compose.screens.mealbook.DishEditScreen
 import org.acme.food_tracker_mobile_compose.screens.mealdetail.MealDetailScreen
 import org.acme.food_tracker_mobile_compose.screens.mealdetail.MealEditScreen
 import org.acme.food_tracker_mobile_compose.screens.meals.MainScreen
 import org.acme.food_tracker_mobile_compose.screens.menu.MenuScreen
-import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.DishViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
+import org.acme.food_tracker_mobile_compose.viewmodel.*
 
 @Composable
 fun Navigation() {
+    val scope = rememberCoroutineScope()
+    val scaffoldState = rememberScaffoldState()
     val navController = rememberNavController()
     val menuViewModel = MenuScreenViewModel()
     val dishViewModel = DishViewModel(menuViewModel)
-    val mainScreenViewModel = MainScreenViewModel(menuViewModel, dishViewModel)
+    val mainScreenViewModel = MainScreenViewModel(
+        menuViewModel,
+        dishViewModel,
+        snackbarPrinter = { scope.launch { scaffoldState.snackbarHostState.showSnackbar(it) } })
     val dishCreateViewModel = DishCreateViewModel(menuViewModel, dishViewModel)
-    val scaffoldState = rememberScaffoldState()
-
-    val scope = rememberCoroutineScope()
+    var dishEditScreenViewModel: DishEditScreenViewModel? = null
 
     SideEffect {
         scope.launch {
@@ -62,12 +59,17 @@ fun Navigation() {
     }
 
     Scaffold(
+        scaffoldState = scaffoldState,
         bottomBar = {
             NavBar(
                 items = listOf(
                     NavBarItem("Home", Screen.MainScreen.route, Icons.Outlined.Home),
                     NavBarItem("History", Screen.HistoryScreen.route, Icons.Outlined.List),
-                    NavBarItem("Meal Book", Screen.MealBook.route, ImageVector.vectorResource(R.drawable.ic_outline_menu_book_24)),
+                    NavBarItem(
+                        "Meal Book",
+                        Screen.MealBook.route,
+                        ImageVector.vectorResource(R.drawable.ic_outline_menu_book_24)
+                    ),
                 ),
                 navController = navController,
                 onItemClick = {
@@ -81,7 +83,12 @@ fun Navigation() {
     ) { padding ->
         NavHost(navController, startDestination = Screen.MainScreen.route) {
             composable(Screen.MainScreen.route) {
-                MainScreen(navController = navController, viewModel = mainScreenViewModel, scaffoldState = scaffoldState, padding = padding)
+                MainScreen(
+                    navController = navController,
+                    viewModel = mainScreenViewModel,
+                    scaffoldState = scaffoldState,
+                    padding = padding
+                )
             }
             composable(Screen.MenuScreen.route) {
                 MenuScreen(navController = navController, viewModel = menuViewModel, padding = padding)
@@ -96,7 +103,13 @@ fun Navigation() {
                 route = Screen.MealEditScreen.route + "/{id}",
                 arguments = justIdArg()
             ) { entry ->
-                MealEditScreen(navController, mainScreenViewModel, scaffoldState, padding, entry.arguments?.getLong("id"))
+                MealEditScreen(
+                    navController,
+                    mainScreenViewModel,
+                    scaffoldState,
+                    padding,
+                    entry.arguments?.getLong("id")
+                )
             }
             composable(Screen.HistoryScreen.route) {
                 HistoryScreen(viewModel = mainScreenViewModel, padding = padding)
@@ -126,16 +139,69 @@ fun Navigation() {
                     }
                 )
             ) { entry ->
-                DishCreateScreen(navController, dishCreateViewModel, scaffoldState, padding, entry.arguments?.getString("name"), entry.arguments?.getString("kcalExpression"))
+                DishCreateScreen(
+                    navController,
+                    dishCreateViewModel,
+                    scaffoldState,
+                    padding,
+                    entry.arguments?.getString("name"),
+                    entry.arguments?.getString("kcalExpression")
+                )
             }
             composable(
                 route = Screen.DishEditScreen.route + "/{id}",
                 arguments = justIdArg()
             ) { entry ->
-                DishEditScreen(navController, menuViewModel, dishViewModel, scaffoldState, padding, entry.arguments?.getLong("id"))
+                val id = entry.arguments?.getLong("id")
+                if (dishEditScreenViewModel?.dish?.id != id) {
+                    dishEditScreenViewModel = createDishEditScreenViewModel(
+                        menuViewModel,
+                        dishViewModel,
+                        entry.arguments?.getLong("id"),
+                        barcode = null
+                    )
+                }
+                if (dishEditScreenViewModel != null) {
+                    DishEditScreen(navController, dishEditScreenViewModel!!, scaffoldState, padding)
+                }
+            }
+
+            composable(
+                Screen.DishBarcodeScanner.route + "/{type}",
+                arguments = singleArg("type", NavType.StringType)
+            ) { entry ->
+                val type = entry.arguments?.getString("type")
+                val onCapturedBarcode: (Long) -> Unit = when (type) {
+                    "find" -> { b -> mainScreenViewModel.searchForBarcode(b) }
+                    "edit" -> { b -> dishEditScreenViewModel?.barcode = b }
+                    "create" -> { b -> dishCreateViewModel?.barcode = b }
+                    else -> { _ -> }
+                }
+                DishBarcodeScanner(navController, padding, onCapturedBarcode = onCapturedBarcode)
             }
         }
     }
+}
+
+@Composable
+private fun createDishEditScreenViewModel(
+    menuViewModel: MenuScreenViewModel,
+    dishViewModel: DishViewModel,
+    dishId: Long?,
+    barcode: Long?,
+): DishEditScreenViewModel? {
+    dishId ?: return null
+    val dish = dishViewModel.getDish(dishId) ?: return null
+
+    return DishEditScreenViewModel(
+        menuViewModel,
+        dishViewModel,
+        dish,
+        dish.name,
+        dish.kcalExpression ?: dish.kcal.toString(),
+        barcode,
+    )
+
 }
 
 @Composable
@@ -161,6 +227,13 @@ data class NavBarItem(
     val name: String,
     val route: String,
     val icon: ImageVector,
+)
+
+private fun <T> singleArg(arg: String, type1: NavType<T>) = listOf(
+    navArgument(arg) {
+        type = type1
+        nullable = false
+    }
 )
 
 private fun justIdArg() = listOf(

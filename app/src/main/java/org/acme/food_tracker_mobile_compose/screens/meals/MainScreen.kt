@@ -28,8 +28,7 @@ fun MainScreen(
         Column(modifier = Modifier.padding(horizontal = 30.dp, vertical = 12.dp)) {
             MealList(viewModel, scope, navController)
             Spacer(modifier = Modifier.height(32.dp))
-            MealInput(viewModel, scope, scaffoldState)
+            MealInput(navController, viewModel, scope, scaffoldState, addBarcodeScannerButton = true)
         }
     }
-
 }

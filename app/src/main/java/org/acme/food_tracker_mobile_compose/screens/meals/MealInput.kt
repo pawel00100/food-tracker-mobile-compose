@@ -15,23 +15,29 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.acme.food_tracker_mobile_compose.R
 import org.acme.food_tracker_mobile_compose.httpclient.Dish
+import org.acme.food_tracker_mobile_compose.screens.Screen
 import org.acme.food_tracker_mobile_compose.ui.theme.BlankedText
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 
 @Composable
 fun MealInput(
+    navController: NavController,
     viewModel: MainScreenViewModel,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
     create: Boolean = true,
+    addBarcodeScannerButton: Boolean = false,
     additionalActionAfterSubmit: () -> Unit = {},
 ) {
     NameField(viewModel)
@@ -40,7 +46,15 @@ fun MealInput(
     Spacer(modifier = Modifier.height(16.dp))
     TimeOfDayInput(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
-    Buttons(scope, viewModel, scaffoldState, create, additionalActionAfterSubmit)
+    Buttons(
+        navController,
+        scope,
+        viewModel,
+        scaffoldState,
+        create,
+        addBarcodeScannerButton,
+        additionalActionAfterSubmit
+    )
 }
 
 @Composable
@@ -64,7 +78,8 @@ private fun NameField(viewModel: MainScreenViewModel) {
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->
                     println("Focus: $focusState, ${focusState.isFocused}")
-                    viewModel.dropdownMenuOpened = focusState.hasFocus && viewModel.nameTextFieldState.isNotEmpty()
+                    viewModel.dropdownMenuOpened =
+                        focusState.hasFocus && viewModel.nameTextFieldState.isNotEmpty()
                     println("Keyboard opened: $isKeyboardOpen")
                 },
         )
@@ -202,10 +217,12 @@ private fun TimeOfDaySlider(viewModel: MainScreenViewModel) {
 
 @Composable
 private fun Buttons(
+    navController: NavController,
     scope: CoroutineScope,
     viewModel: MainScreenViewModel,
     scaffoldState: ScaffoldState,
     create: Boolean,
+    addBarcodeScannerButton: Boolean,
     additionalActionAfterSubmit: () -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -215,6 +232,19 @@ private fun Buttons(
         ) {
             Text(if (create) "Add" else "Save")
         }
+
+        if (addBarcodeScannerButton) {
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(onClick = {
+                navController.navigate(Screen.DishBarcodeScanner.withArgs("find"))
+            }) {
+                Icon(
+                    painterResource(R.drawable.barcode_scanner_24px),
+                    contentDescription = "Barcode scanner"
+                )
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,

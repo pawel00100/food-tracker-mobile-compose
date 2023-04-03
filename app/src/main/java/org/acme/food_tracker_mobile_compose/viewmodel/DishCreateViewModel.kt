@@ -18,12 +18,13 @@ open class DishCreateViewModel(
     val dishViewModel: DishViewModel,
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
+    barcode: Long? = null,
 ) : ViewModel() {
     val client = KtorClient()
 
     var nameTextFieldState by mutableStateOf(nameTextFieldState)
     var kcalTextFieldState by mutableStateOf(kcalTextFieldState)
-
+    var barcode by mutableStateOf(barcode)
 
     fun validated() = kcalValidated() && nameTextFieldState.isNotEmpty()
 
@@ -50,7 +51,8 @@ open class DishCreateViewModel(
         }
     }
 
-    fun kcalFieldContainsPotentialExpression() = kcalTextFieldState.isNotEmpty() && !kcalFieldHasPlainNumber()
+    fun kcalFieldContainsPotentialExpression() =
+        kcalTextFieldState.isNotEmpty() && !kcalFieldHasPlainNumber()
 
     private fun readKcalTextFieldState() = kcalTextFieldState.replace(",", ".").replace("×", "*")
 
@@ -59,20 +61,36 @@ open class DishCreateViewModel(
     suspend fun postDish(): Boolean {
         val kcal = evaluateKcal() ?: return false
         val date = Instant.now()
-        val dish = Dish(null, nameTextFieldState.trim(), kcal, readKcalTextFieldState(), date)
+        val dish =
+            Dish(null, nameTextFieldState.trim(), kcal, readKcalTextFieldState(), date, barcode)
         val dishPostResponse: Resource<DishPostResponse?> =
-            client.postAndReturnBody(DishWeb(null, dish.name, dish.kcal, dish.kcalExpression, dish.created), menuViewModel.serverAddressFieldState + "/dish")
-
+            client.postAndReturnBody(
+                DishWeb(
+                    null,
+                    dish.name,
+                    dish.kcal,
+                    dish.kcalExpression,
+                    dish.created,
+                    dish.barcode
+                ),
+                menuViewModel.serverAddressFieldState + "/dish"
+            )
 
         if (dishPostResponse is Resource.Success && dishPostResponse.result?.id != null) {
-            dishViewModel.dishList.add(Dish(dishPostResponse.result.id, dish.name, dish.kcal, dish.kcalExpression, dish.created))
+            dishViewModel.dishList.add(
+                Dish(
+                    dishPostResponse.result.id,
+                    dish.name,
+                    dish.kcal,
+                    dish.kcalExpression,
+                    dish.created,
+                    dish.barcode
+                )
+            )
             return true
         }
-
         return false
     }
-
-
 }
 
 @Serializable

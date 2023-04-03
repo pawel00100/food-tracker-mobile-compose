@@ -1,4 +1,4 @@
-package org.acme.food_tracker_mobile_compose.screens.mealbook
+package org.acme.food_tracker_mobile_compose.screens.dishbook
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

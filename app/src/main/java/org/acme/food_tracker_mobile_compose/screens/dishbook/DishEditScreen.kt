@@ -1,4 +1,4 @@
-package org.acme.food_tracker_mobile_compose.screens.mealbook
+package org.acme.food_tracker_mobile_compose.screens.dishbook
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -11,30 +11,22 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.acme.food_tracker_mobile_compose.screens.meals.DishInput
 import org.acme.food_tracker_mobile_compose.screens.menu.BackButton
-import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
+import org.acme.food_tracker_mobile_compose.viewmodel.DishEditScreenViewModel
 
 
 @Composable
-fun DishCreateScreen(
+fun DishEditScreen(
     navController: NavController,
-    outsideViewModel: DishCreateViewModel,
+    dishEditScreenViewModel: DishEditScreenViewModel,
     scaffoldState: ScaffoldState,
     padding: PaddingValues,
-    name: String? = null,
-    kcalExpression: String? = null,
 ) {
+    val dish = dishEditScreenViewModel.dish
 
+    dishEditScreenViewModel.nameTextFieldState = dish.name
+    dishEditScreenViewModel.kcalTextFieldState = dish.kcalExpression ?: dish.kcal.toString()
 
     val scope = rememberCoroutineScope()
-    val insideViewModel = DishCreateViewModel(
-        outsideViewModel.menuViewModel,
-        outsideViewModel.dishViewModel,
-        name ?: "",
-        kcalExpression ?: "",
-    )
-
-    DishInput(viewModel = outsideViewModel, scope = scope, scaffoldState = scaffoldState)
-
 
     Surface(
         modifier = Modifier
@@ -45,8 +37,13 @@ fun DishCreateScreen(
             BackButton(navController)
             Spacer(modifier = Modifier.height(32.dp))
 
-            DishInput(viewModel = insideViewModel, scope = scope, scaffoldState = scaffoldState) { navController.popBackStack() }
+            DishInput(
+                navController,
+                dishEditScreenViewModel,
+                scope,
+                scaffoldState,
+                false
+            ) { navController.popBackStack() }
         }
     }
-
 }

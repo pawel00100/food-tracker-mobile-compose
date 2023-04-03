@@ -1,4 +1,4 @@
-package org.acme.food_tracker_mobile_compose.screens.mealbook
+package org.acme.food_tracker_mobile_compose.screens.dishbook
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -11,32 +11,26 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.acme.food_tracker_mobile_compose.screens.meals.DishInput
 import org.acme.food_tracker_mobile_compose.screens.menu.BackButton
-import org.acme.food_tracker_mobile_compose.viewmodel.DishEditScreenViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.DishViewModel
-import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
+import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
 
 
 @Composable
-fun DishEditScreen(
+fun DishCreateScreen(
     navController: NavController,
-    menuViewModel: MenuScreenViewModel,
-    dishViewModel: DishViewModel,
+    outsideViewModel: DishCreateViewModel,
     scaffoldState: ScaffoldState,
     padding: PaddingValues,
-    dishId: Long?,
+    name: String? = null,
+    kcalExpression: String? = null,
 ) {
-
-    if (dishId == null) {
-        return
-    }
-
-    val dishEditScreenViewModel = DishEditScreenViewModel(menuViewModel, dishViewModel, dishId)
-
-    if (dishEditScreenViewModel.dishViewModel.getDish(dishId) == null) {
-        return
-    }
-
     val scope = rememberCoroutineScope()
+    val insideViewModel = DishCreateViewModel(
+        outsideViewModel.menuViewModel,
+        outsideViewModel.dishViewModel,
+        name ?: "",
+        kcalExpression ?: "",
+        outsideViewModel.barcode
+    )
 
     Surface(
         modifier = Modifier
@@ -47,8 +41,12 @@ fun DishEditScreen(
             BackButton(navController)
             Spacer(modifier = Modifier.height(32.dp))
 
-            DishInput(dishEditScreenViewModel, scope, scaffoldState, false) { navController.popBackStack() }
+            DishInput(
+                navController,
+                insideViewModel,
+                scope,
+                scaffoldState
+            ) { navController.popBackStack() }
         }
     }
-
 }

@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
-private val URL = "http://192.168.2.148:8080"
+private val URL = "http://192.168.2.41:8080"
 
 class MenuScreenViewModel : ViewModel() {
     var serverAddressFieldState by mutableStateOf(URL)

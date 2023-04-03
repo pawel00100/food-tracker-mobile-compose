@@ -7,29 +7,39 @@ import java.time.Instant
 class DishEditScreenViewModel(
     menuViewModel: MenuScreenViewModel,
     dishViewModel: DishViewModel,
-    val id: Long,
+    val dish: Dish,
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
-) : DishCreateViewModel(menuViewModel, dishViewModel, nameTextFieldState, kcalTextFieldState) {
+    barcode: Long? = null,
+) : DishCreateViewModel(
+    menuViewModel,
+    dishViewModel,
+    nameTextFieldState,
+    kcalTextFieldState,
+    barcode
+) {
 
     override suspend fun submitDish() = putDish()
 
     suspend fun putDish(): Boolean {
-        val dish = Dish(
-            id,
+        val kcal = evaluateKcal() ?: return false
+
+        val newDish = Dish(
+            dish.id,
             nameTextFieldState,
-            kcalTextFieldState.toInt(),
+            kcal,
             kcalTextFieldState,
             Instant.now(),
+            barcode,
         )
-        val result = client.put(DishWeb(dish), menuViewModel.serverAddressFieldState + "/dish")
+        val result = client.put(DishWeb(newDish), menuViewModel.serverAddressFieldState + "/dish")
 
         if (result.isFailure()) {
             return false
         }
 
-        dishViewModel.dishList.removeIf { it.id == id }
-        dishViewModel.dishList.add(dish)
+        dishViewModel.dishList.removeIf { it.id == dish.id }
+        dishViewModel.dishList.add(newDish)
         return true
     }
 

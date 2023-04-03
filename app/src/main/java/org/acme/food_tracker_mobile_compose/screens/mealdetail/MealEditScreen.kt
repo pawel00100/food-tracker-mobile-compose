@@ -54,7 +54,7 @@ fun MealEditScreen(
             BackButton(navController)
             Spacer(modifier = Modifier.height(32.dp))
 
-            MealInput(insideViewModel, scope, scaffoldState, false) { navController.popBackStack() }
+            MealInput(navController, insideViewModel, scope, scaffoldState, false) { navController.popBackStack() }
         }
     }
 

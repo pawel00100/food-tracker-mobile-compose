@@ -55,4 +55,6 @@ open class DishViewModel(
 
     fun getDish(id: Long) = dishList.find { (it.id ?: -1) == id }
 
+    fun getDishByBarcode(id: Long) = dishList.find { (it.barcode ?: -1) == id }
+
 }

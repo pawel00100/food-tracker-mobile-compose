@@ -58,7 +58,7 @@ fun BackButton(navController: NavController) {
             IconButton(onClick = {
                 navController.popBackStack()
             }) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "Open date picker")
+                Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
             }
         }
     }

@@ -31,6 +31,7 @@ open class MainScreenViewModel(
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
     exerciseSwitchState: Boolean = false,
+    val snackbarPrinter: (String) -> Unit = {},
 ) : ViewModel() {
     val client = KtorClient()
 
@@ -81,14 +82,41 @@ open class MainScreenViewModel(
     @OptIn(ExperimentalPagerApi::class)
     suspend fun postMeal(): Boolean {
         val kcal = evaluateKcal() ?: return false
-        val date = LocalDateTime.of(LocalDate.now(), sliderTime()).plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).toInstant()
-        val meal = Meal(null, nameTextFieldState.trim(), kcal, readKcalTextFieldState(), date, exerciseSwitchState)
+        val date = LocalDateTime.of(LocalDate.now(), sliderTime())
+            .plus(datePagerState.currentPage - startingPage, ChronoUnit.DAYS)
+            .atZone(ZoneId.systemDefault()).toInstant()
+        val meal = Meal(
+            null,
+            nameTextFieldState.trim(),
+            kcal,
+            readKcalTextFieldState(),
+            date,
+            exerciseSwitchState
+        )
         val mealPostResponse: Resource<MealPostResponse?> =
-            client.postAndReturnBody(MealWeb(null, meal.name, meal.kcal, meal.kcalExpression, meal.date, meal.exercise), menuViewModel.serverAddressFieldState + "/meal")
+            client.postAndReturnBody(
+                MealWeb(
+                    null,
+                    meal.name,
+                    meal.kcal,
+                    meal.kcalExpression,
+                    meal.date,
+                    meal.exercise
+                ), menuViewModel.serverAddressFieldState + "/meal"
+            )
 
 
         if (mealPostResponse is Resource.Success && mealPostResponse.result?.id != null) {
-            mealList.add(Meal(mealPostResponse.result.id, meal.name, meal.kcal, meal.kcalExpression, meal.date, meal.exercise))
+            mealList.add(
+                Meal(
+                    mealPostResponse.result.id,
+                    meal.name,
+                    meal.kcal,
+                    meal.kcalExpression,
+                    meal.date,
+                    meal.exercise
+                )
+            )
             return true
         }
 
@@ -121,9 +149,13 @@ open class MainScreenViewModel(
         }
     }
 
-    fun getMeals(day: LocalDate) = mealList.filter { LocalDateTime.ofInstant(it.date, ZoneId.systemDefault()).toLocalDate() == day }.sortedBy { it.date }
+    fun getMeals(day: LocalDate) = mealList.filter {
+        LocalDateTime.ofInstant(it.date, ZoneId.systemDefault()).toLocalDate() == day
+    }.sortedBy { it.date }
+
     fun getKcalsByDay() =
-        mealList.groupBy { LocalDateTime.ofInstant(it.date, ZoneId.systemDefault()).toLocalDate() }.mapValues { it.value.sumOf { it.kcal } }.toSortedMap() //for history view
+        mealList.groupBy { LocalDateTime.ofInstant(it.date, ZoneId.systemDefault()).toLocalDate() }
+            .mapValues { it.value.sumOf { it.kcal } }.toSortedMap() //for history view
 
     fun getMeal(id: Long) = mealList.find { (it.id ?: -1) == id }
 
@@ -142,10 +174,24 @@ open class MainScreenViewModel(
             .coerceAtMost(60 * 24 - 15)
         return LocalTime.of(mins / 60, mins % 60)
     }
+
+    fun searchForBarcode(barcode: Long) {
+        val dish = dishViewModel.getDishByBarcode(barcode)
+        if (dish == null) {
+            snackbarPrinter("Failed to found dish with this code")
+            return
+        }
+        nameTextFieldState = dish.name
+        kcalTextFieldState = dish.kcalExpression ?: dish.kcal.toString()
+    }
 }
 
 private fun LocalTime.trimToRangeAndMapFrom0To1(minutesMin: Int, minutesMax: Int): Float {
-    return this.get(ChronoField.MINUTE_OF_DAY).minus(minutesMin).toFloat().div(minutesMax - minutesMin).coerceIn(0F, 1F)
+    return this
+        .get(ChronoField.MINUTE_OF_DAY)
+        .minus(minutesMin)
+        .toFloat()
+        .div(minutesMax - minutesMin).coerceIn(0F, 1F)
 }
 
 @Serializable
