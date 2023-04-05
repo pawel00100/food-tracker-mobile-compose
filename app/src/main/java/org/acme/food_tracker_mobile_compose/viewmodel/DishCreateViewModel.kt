@@ -9,6 +9,7 @@ import net.objecthunter.exp4j.ExpressionBuilder
 import org.acme.food_tracker_mobile_compose.httpclient.Dish
 import org.acme.food_tracker_mobile_compose.httpclient.DishWeb
 import org.acme.food_tracker_mobile_compose.httpclient.KtorClient
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.NameKcalInputViewModel
 import org.acme.food_tracker_mobile_compose.util.Resource
 import java.time.Instant
 
@@ -19,11 +20,11 @@ open class DishCreateViewModel(
     nameTextFieldState: String = "",
     kcalTextFieldState: String = "",
     barcode: Long? = null,
-) : ViewModel() {
+) : ViewModel(), NameKcalInputViewModel {
     val client = KtorClient()
 
-    var nameTextFieldState by mutableStateOf(nameTextFieldState)
-    var kcalTextFieldState by mutableStateOf(kcalTextFieldState)
+    override var nameTextFieldState by mutableStateOf(nameTextFieldState)
+    override var kcalTextFieldState by mutableStateOf(kcalTextFieldState)
     var barcode by mutableStateOf(barcode)
 
     fun validated() = kcalValidated() && nameTextFieldState.isNotEmpty()
@@ -43,7 +44,7 @@ open class DishCreateViewModel(
 
     fun kcalFieldHasPlainNumber() = readKcalTextFieldState().toIntOrNull() != null
 
-    fun evaluateKcal(): Int? {
+    override fun evaluateKcal(): Int? {
         return try {
             ExpressionBuilder(readKcalTextFieldState()).build().evaluate().toInt()
         } catch (e: Exception) {
@@ -51,7 +52,7 @@ open class DishCreateViewModel(
         }
     }
 
-    fun kcalFieldContainsPotentialExpression() =
+    override fun kcalFieldContainsPotentialExpression() =
         kcalTextFieldState.isNotEmpty() && !kcalFieldHasPlainNumber()
 
     private fun readKcalTextFieldState() = kcalTextFieldState.replace(",", ".").replace("×", "*")

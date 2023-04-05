@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.ClearTextFieldIcon
 import org.acme.food_tracker_mobile_compose.viewmodel.MenuScreenViewModel
 
 @Composable
@@ -30,6 +31,11 @@ fun MenuScreen(
             OutlinedTextField(
                 value = viewModel.serverAddressFieldState,
                 label = { Text("Server") },
+                trailingIcon = {
+                    ClearTextFieldIcon(viewModel.serverAddressFieldState) {
+                        viewModel.serverAddressFieldState = ""
+                    }
+                },
                 onValueChange = { viewModel.serverAddressFieldState = it },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -38,6 +44,11 @@ fun MenuScreen(
             OutlinedTextField(
                 value = viewModel.kcalTargetFieldState,
                 label = { Text("Kcal target") },
+                trailingIcon = {
+                    ClearTextFieldIcon(viewModel.kcalTargetFieldState) {
+                        viewModel.kcalTargetFieldState = ""
+                    }
+                },
                 onValueChange = { viewModel.kcalTargetFieldState = it },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,

@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -27,6 +26,8 @@ import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.R
 import org.acme.food_tracker_mobile_compose.httpclient.Dish
 import org.acme.food_tracker_mobile_compose.screens.Screen
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.ClearTextFieldIcon
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.KcalField
 import org.acme.food_tracker_mobile_compose.ui.theme.BlankedText
 import org.acme.food_tracker_mobile_compose.viewmodel.MainScreenViewModel
 
@@ -42,7 +43,7 @@ fun MealInput(
 ) {
     NameField(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
-    KcalField(viewModel, scope, scaffoldState, additionalActionAfterSubmit)
+    KcalField(viewModel) { sendMeal(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }
     Spacer(modifier = Modifier.height(16.dp))
     TimeOfDayInput(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
@@ -66,6 +67,7 @@ private fun NameField(viewModel: MainScreenViewModel) {
         OutlinedTextField(
             value = viewModel.nameTextFieldState,
             label = { Text("Name") },
+            trailingIcon = { ClearTextFieldIcon(viewModel.nameTextFieldState) { viewModel.nameTextFieldState = "" } },
             onValueChange = {
                 viewModel.nameTextFieldState = it
                 viewModel.dropdownMenuOpened = viewModel.nameTextFieldState.isNotEmpty()
@@ -110,40 +112,13 @@ private fun DishDropdownItem(dish: Dish, viewModel: MainScreenViewModel) {
         viewModel.nameTextFieldState = dish.name
         viewModel.kcalTextFieldState = dish.kcalExpression ?: ""
     }) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.weight(1f)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.weight(1f)
+        ) {
             Text(dishName)
             Text("${dish.kcal} kcal", color = MaterialTheme.colors.BlankedText)
         }
-    }
-}
-
-@Composable
-private fun KcalField(
-    viewModel: MainScreenViewModel,
-    scope: CoroutineScope,
-    scaffoldState: ScaffoldState,
-    additionalActionAfterSubmit: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedTextField(
-            value = viewModel.kcalTextFieldState,
-            label = { Text("Kcal") },
-            trailingIcon = {
-                if (viewModel.kcalFieldContainsPotentialExpression()) {
-                    Text(text = viewModel.evaluateKcal()?.toString() ?: "NAN")
-                }
-            },
-            onValueChange = { viewModel.kcalTextFieldState = it },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone = { sendMeal(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 

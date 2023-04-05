@@ -13,13 +13,14 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.acme.food_tracker_mobile_compose.R
 import org.acme.food_tracker_mobile_compose.screens.Screen
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.ClearTextFieldIcon
+import org.acme.food_tracker_mobile_compose.screens.misccomponents.KcalField
 import org.acme.food_tracker_mobile_compose.viewmodel.DishCreateViewModel
 
 @Composable
@@ -33,7 +34,7 @@ fun DishInput(
 ) {
     NameField(viewModel)
     Spacer(modifier = Modifier.height(16.dp))
-    KcalField(viewModel, scope, scaffoldState, additionalActionAfterSubmit)
+    KcalField(viewModel) { sendDish(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }
     Spacer(modifier = Modifier.height(16.dp))
     if (viewModel.barcode != null) {
         BarcodeRow(viewModel)
@@ -49,40 +50,13 @@ private fun NameField(viewModel: DishCreateViewModel) {
     OutlinedTextField(
         value = viewModel.nameTextFieldState,
         label = { Text("Name") },
+        trailingIcon = { ClearTextFieldIcon(viewModel.nameTextFieldState) { viewModel.nameTextFieldState = "" } },
         onValueChange = { viewModel.nameTextFieldState = it },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         keyboardActions = KeyboardActions(onDone = { localFocusManager.moveFocus(FocusDirection.Down) }),
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
-}
-
-@Composable
-private fun KcalField(
-    viewModel: DishCreateViewModel,
-    scope: CoroutineScope,
-    scaffoldState: ScaffoldState,
-    additionalActionAfterSubmit: () -> Unit,
-) {
-    val kcalFieldContainsPotentialExpression = viewModel.kcalFieldContainsPotentialExpression()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedTextField(
-            value = viewModel.kcalTextFieldState,
-            label = { Text("Kcal") },
-            onValueChange = { viewModel.kcalTextFieldState = it },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone = { sendDish(scope, viewModel, scaffoldState, additionalActionAfterSubmit) }),
-            singleLine = true,
-            modifier = if (!kcalFieldContainsPotentialExpression) Modifier.fillMaxWidth() else Modifier
-        )
-        if (viewModel.kcalFieldContainsPotentialExpression()) {
-            Text(text = "${viewModel.evaluateKcal()?.toString() ?: "NAN"} kcal")
-        }
-    }
 }
 
 @Composable
